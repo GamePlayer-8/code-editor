@@ -4,6 +4,8 @@ from tkinter import *
 from tkinter import filedialog
 import tkinter.font as tkFont
 import os
+import sys
+from pathlib import Path
 
 # opcje
 
@@ -159,7 +161,13 @@ frame = Frame(root)
 font = tkFont.Font()
 editor = Text(frame, background=darkbg, foreground=darktext, selectforeground=darktext, selectbackground=darkselect, insertbackground=darkcursor, padx=0, pady=0, font=font)
 editor.pack(expand=YES, fill=BOTH,side=TOP)
-editor.insert('1.0', htmltemplate)
+
+if Path(sys.argv[1]).is_file():
+    with open(sys.argv[1], 'r') as my_file:
+        editor.insert('1.0', my_file.read())
+else:
+    editor.insert('1.0', htmltemplate)
+
 yscrollbar=Scrollbar(root, orient=VERTICAL, command=editor.yview)
 yscrollbar.pack(side=RIGHT, fill=Y)
 editor["yscrollcommand"]=yscrollbar.set
