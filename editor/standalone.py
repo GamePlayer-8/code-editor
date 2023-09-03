@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 from tkinter import *
-from tkhtmlview import HTMLLabel, RenderHTML
 from tkinter import filedialog
 import tkinter.font as tkFont
-
-os.chdir(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.getcwd())
-PYBIN = sys.executable
+import os
+import sys
+from pathlib import Path
 
 # opcje
 
@@ -38,7 +34,7 @@ htmltemplate = """
 <div style="color:green"> wciśnij klawisze (control) i (o) żeby otworzyć istniejący plik </div>
 <div style="color:yellow;background-color:black;"> klawisze ctrl+ , - , a , v, c, x, ... również działają </div>
 <code style="color:green;background-color:black"> >$ ciekawostka - część kodu źródłowego tego edytora tekstu została napisana... \
-w tymże edytorze tekstu :) _ </code> <br> <p>kod źródłowy : <a href="https://codeberg.org/hacknorris/editor">link</a></p>
+w tymże edytorze tekstu :) _ </code> <br>
 <i>notka - możliwość uruchomienia aplikacji ze skrótu w bashu... po prostu ./edytor_html.py . kompatybilne z folderami typu /bin/ ... </i>
 <div>informacje o autorze: <img src="pinky-kde.gif"></img></div>
 <ul>
@@ -58,7 +54,8 @@ helpcontents = """
     CTRL + m = zmień motyw
     CTRL + + = powiększ
     CTRL + - = pomniejsz
-    CTRL + t = przypnij edytro
+    CTRL + p = przypnij edytor
+    CTRL + t = otwórz terminal
     CTRL + * = ???
     ---------
     Tagi wspierane przez podgląd HTML:
@@ -93,6 +90,7 @@ def Save_Window(*args):
         file.write(editor.get("0.0",END))
 
 def Wiev_Window(*args):
+    from tkhtmlview import HTMLLabel, RenderHTML
     Second_Window = Toplevel()
     Second_Window.title("podgląd")
     entry1 = IntVar()
@@ -144,18 +142,13 @@ def dang(*args):
     dangs.attributes('-topmost', True)
     dmode = Label(dangs, text="Developer Mode").pack()
 
-"""
-global checker
-checker=false
-def increment:
-    if checker = true:
-        defsize = tkFont.Font(font='TkDefaultFont').configure()['size']
-        editor.config(font=defsize+1)
-        checker = true
-    else:
-        size = editor.cget("size")
-        editor.configure(size=size+1)
-"""
+def terminal(*args):
+    console = Toplevel()
+    console.resizable(width=False, height=False)
+    termf = Frame(console, height=400, width=490)
+    termf.pack(fill=BOTH, expand=YES)
+    wid = termf.winfo_id()
+    os.system('xterm -into %d -geometry 75x30 -sb &' % wid)
 
 # główny kod
 
@@ -168,7 +161,13 @@ frame = Frame(root)
 font = tkFont.Font()
 editor = Text(frame, background=darkbg, foreground=darktext, selectforeground=darktext, selectbackground=darkselect, insertbackground=darkcursor, padx=0, pady=0, font=font)
 editor.pack(expand=YES, fill=BOTH,side=TOP)
-editor.insert('1.0', htmltemplate)
+
+if Path(sys.argv[1]).is_file():
+    with open(sys.argv[1], 'r') as my_file:
+        editor.insert('1.0', my_file.read())
+else:
+    editor.insert('1.0', htmltemplate)
+
 yscrollbar=Scrollbar(root, orient=VERTICAL, command=editor.yview)
 yscrollbar.pack(side=RIGHT, fill=Y)
 editor["yscrollcommand"]=yscrollbar.set
@@ -184,15 +183,17 @@ root.bind('<Control-slash>', Help_Window)
 root.bind('<Control-m>', toggle)
 root.bind('<Control-plus>',bigger)
 root.bind('<Control-minus>',smaller)
-root.bind('<Control-t>',pinner)
+root.bind('<Control-p>',pinner)
 root.bind('<Control-KP_Multiply>',dang)
+root.bind('<Control-t>',terminal)
 
 
 if complete == True:
     def append(self, evt=None):
          for i, j in enumerate(start_brackets):
              if self.keysym == start_brackets[i] :
-                 editor.insert("insert", end_brackets[i])
+                 editor.insert(INSERT, end_brackets[i])
+                 editor.mark_set("insert", INSERT+"-1c")
     root.bind("<Key>", append )
 
 # # # # #
